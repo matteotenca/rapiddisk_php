@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css"
+          integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" rel="stylesheet">
+    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <style>
+        .chartDiv {
+            height: 300px;
+        }
+    </style>
+    <title>RapidCurse</title>
+</head>
+<body>
+<div class="container" style="width: 90%;" role="main">
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/index.html">RapidCurse</a>
+<!--                <ul class="nav navbar-nav">-->
+<!--                    <li class="dropdown">-->
+<!--                        <a href="#" class="dropdown" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>-->
+<!--                        <ul class="dropdown-menu">-->
+<!--                            <li><a href="index.html">Dashboard</a></li>-->
+<!--                            <li><a href="oldindex.php">Stats</a></li>-->
+<!--                        </ul>-->
+<!--                    </li>-->
+<!--                </ul>-->
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+
+    <div class="page-header">
+        <h2>RapidCurse - <small>Rapiddisk Management</small></h2>
+    </div>
+
+    <ul id="tablist" class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#ramdisks" aria-controls="ramdisks" role="tab" data-toggle="tab" onclick="getinfo();">Ramdisks</a></li>
+        <li role="presentation"><a href="#mappings" aria-controls="mappings" role="tab" data-toggle="tab" onclick="getinfo();">Mappings</a></li>
+        <li role="presentation"><a href="#graph" aria-controls="graph" role="tab" data-toggle="tab" onclick="getdevices(); getdata();">Graph</a></li>
+    </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade in active" id="ramdisks">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Device Name</th>
+                            <th>Device Size (Bytes)</th>
+                            <th>Device Size (MB)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table_ramdisks">
+                    </tbody>
+                </table>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="mappings">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Device Name</th>
+                        <th>Attached Ramdisk</th>
+                        <th>Source Device</th>
+                        <th>Cache Mode</th>
+                    </tr>
+                    </thead>
+                    <tbody id="table_mappings">
+                    </tbody>
+                </table>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="graph">
+                <div class="row" style="padding-top: 5px;">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="devicesList">Choose a device:</label>
+                            <select class="form-control" id="devicesList" onchange="getdata()"></select>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" id="UpdateBtn" name="Update" onclick="getdevices();" type="button"
+                                    value="Update">Update
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="updateTime">Update frequency (>= 3):</label>
+                            <input class="form-control" type="number" min="0" max="60" id="updateTime" value="0" step="3" oninput="change_frequency();">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" id="StopBtn" name="Stop"
+                                    onclick="stop();" type="button"
+                                    value="Stop">Stop
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 chartDiv" id="chartContainer0"></div>
+                    <div class="col-md-6 chartDiv" id="chartContainer1"></div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-md-6 chartDiv" id="chartContainer2"></div>
+                    <div class="col-md-6 chartDiv" id="chartContainer3"></div>
+                </div>
+
+            </div>
+
+        </div>
+</div>
+<script crossorigin="anonymous"
+        integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"
+        src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script crossorigin="anonymous"
+        integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+        src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"></script>
+
+<script src="js/dashboard.js"></script>
+<script src="js/rapiddisk.js"></script>
+</body>
+</html>
+
