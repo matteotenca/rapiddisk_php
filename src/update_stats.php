@@ -1,5 +1,7 @@
 <?php
 
+$VERSION = "v0.0.1";
+
 /** @noinspection PhpUnnecessaryLocalVariableInspection */
 function update_devices($action): array
 {

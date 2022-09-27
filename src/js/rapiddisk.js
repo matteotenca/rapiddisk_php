@@ -1,11 +1,15 @@
+/* global CanvasJS */
 /* jshint esversion: 6 */
+
 let frequencyId = null;
 let host = "http://127.0.0.1:9229";
 let getinfoId;
+const VERSION = "v0.0.1";
+
 window.onload = function() {
     'use strict';
     getinfo();
-    getinfoId = setInterval(getinfo, 5000);
+    getinfoId = setInterval(getinfo, 3000);
 };
 
 function update_tabs(data) {
@@ -187,22 +191,6 @@ function getinfo() {
     xmlhttp.open("POST", host + "/update_stats.php", true);
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xmlhttp.send("devices=all");
-}
-
-function get_devices() {
-    'use strict';
-    let xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            if (this.responseText.length > 0) {
-                let json = JSON.parse(this.responseText);
-                update_devices(json);
-            }
-        }
-    };
-    xmlhttp.open("POST", host + "/update_stats.php", true);
-    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.send("devices=");
 }
 
 function get_graph_data() {
