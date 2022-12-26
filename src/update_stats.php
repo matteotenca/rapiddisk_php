@@ -5,7 +5,7 @@ $VERSION = "v0.0.1";
 /** @noinspection PhpUnnecessaryLocalVariableInspection */
 function update_devices($action): array
 {
-    if ( $handle = fopen("http://127.0.0.1:9118/v1/listRapidDiskVolumes", "r")) {
+    if ($handle = fopen("http://127.0.0.1:9118/v1/listRapidDiskVolumes", "r")) {
         $json_data = stream_get_contents($handle);
         fclose($handle);
         $device_data = json_decode($json_data, true);
@@ -15,6 +15,88 @@ function update_devices($action): array
         return $device_data;
     }
     return [];
+}
+
+function remove_ramdisk($dev): array
+{
+    $opts = array('http' =>
+        array(
+            'method' => 'POST',
+        )
+    );
+    $context = stream_context_create($opts);
+    if ($handle = fopen("http://127.0.0.1:9118/v1/removeRapidDisk/$dev", "r", false, $context)) {
+        $json_data = stream_get_contents($handle);
+        fclose($handle);
+        $json = json_decode($json_data, true);
+
+    } else {
+        $json["status"] = "Failed";
+        $json["message"] = "Unable to send command to the daemon";
+    }
+    return $json;
+}
+
+function unmap_device($dev): array
+{
+    $opts = array('http' =>
+        array(
+            'method' => 'POST',
+        )
+    );
+    $context = stream_context_create($opts);
+    if ($handle = fopen("http://127.0.0.1:9118/v1/removeRapidDiskCache/$dev", "r", false, $context)) {
+        $json_data = stream_get_contents($handle);
+        fclose($handle);
+        $json = json_decode($json_data, true);
+    } else {
+        $json["status"] = "Failed";
+        $json["message"] = "Unable to send command to the daemon";
+    }
+    return $json;
+}
+
+function add_ramdisk($size): array
+{
+    $opts = array('http' =>
+        array(
+            'method' => 'POST',
+        )
+    );
+    $context = stream_context_create($opts);
+    if ($handle = fopen("http://127.0.0.1:9118/v1/createRapidDisk/$size", "r", false, $context)) {
+        $json_data = stream_get_contents($handle);
+        fclose($handle);
+        $json = json_decode($json_data, true);
+
+    } else {
+        $json["status"] = "Failed";
+        $json["message"] = "Unable to send command to the daemon";
+    }
+    return $json;
+}
+
+function map_device($dev, $ramdisk, $mode): array
+{
+    $opts = array('http' =>
+        array(
+            'method' => 'POST',
+        )
+    );
+    $context = stream_context_create($opts);
+    if ($handle = fopen(
+        "http://127.0.0.1:9118/v1/createRapidDiskCache/$ramdisk/$dev/$mode",
+        "r", false,
+        $context)
+    ) {
+        $json_data = stream_get_contents($handle);
+        fclose($handle);
+        $json = json_decode($json_data, true);
+    } else {
+        $json["status"] = "Failed";
+        $json["message"] = "Unable to send command to the daemon";
+    }
+    return $json;
 }
 
 function update_stats($dev): array
@@ -57,20 +139,27 @@ function update_stats($dev): array
             $json_array = [$cache_data, $read_data, $write_data, $other];
         }
     } else {
-        $json_array = [];
+        $json_array["status"] = "Failed";
+        $json_array["message"] = "Unable to send command to the daemon";
     }
 
     return $json_array;
 }
 
+$res = array();
+
 if (key_exists("devices", $_POST)) {
     $res = update_devices($_POST["devices"]);
-} else if (key_exists("stats", $_POST)) {
+} else if ((key_exists("stats", $_POST)) && (strlen($_POST["stats"]) > 0)) {
     $res = update_stats($_POST["stats"]);
-} else {
-    $res = array();
+} else if (key_exists("unmap", $_POST)) {
+    $res = unmap_device($_POST["unmap"]);
+} else if (key_exists("map", $_POST)) {
+    $res = map_device($_POST["map"], $_POST["ramdisk"], $_POST["cachemode"]);
+} else if (key_exists("addramdisk", $_POST)) {
+    $res = add_ramdisk($_POST["addramdisk"]);
+} else if (key_exists("removeramdisk", $_POST)) {
+    $res = remove_ramdisk($_POST["removeramdisk"]);
 }
-if (sizeof($res) > 0) {
-    echo json_encode($res, JSON_NUMERIC_CHECK);
-}
+echo json_encode($res, JSON_NUMERIC_CHECK);
 exit(0);

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:visibility="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8">
     <meta content="IE=edge" http-equiv="X-UA-Compatible">
@@ -7,12 +7,13 @@
     <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css"
           integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" rel="stylesheet">
     <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <link href="rapidcurse.css" rel="stylesheet">
     <style>
         .chartDiv {
             height: 300px;
         }
     </style>
-    <title>RapidCurse v0.0.1</title>
+    <title>RapidCurse v0.0.2</title>
 </head>
 <body>
 <div class="container" style="width: 90%;" role="main">
@@ -42,75 +43,122 @@
         <li role="presentation"><a href="#mappings" aria-controls="mappings" role="tab" data-toggle="tab" onclick="getinfo();">Mappings</a></li>
         <li role="presentation"><a href="#graph" aria-controls="graph" role="tab" data-toggle="tab" onclick="setTimeout(getinfo, 100); setTimeout(get_graph_data, 200);">Graph</a></li>
     </ul>
-        <div class="tab-content">
-            <div role="tabpanel" class="tab-pane fade in active" id="ramdisks">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Device Name</th>
-                            <th>Device Size (Bytes)</th>
-                            <th>Device Size (MB)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table_ramdisks">
-                    </tbody>
-                </table>
-            </div>
-            <div role="tabpanel" class="tab-pane fade" id="mappings">
-                <table class="table table-hover">
-                    <thead>
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane fade in active" id="ramdisks">
+            <h4>Click on a device name to detach it, click on Add to create a new ramdisk</h4>
+            <table class="table table-hover">
+                <thead>
                     <tr>
-                        <th>#</th>
+                        <th onclick="{
+                            if (document.getElementById('hrSpan').innerText === 'Add') {
+                                document.getElementById('ramdiskAddDiv').setAttribute('style', 'visibility: visible');
+                                document.getElementById('hrSpan').innerText = 'Close';
+                            } else {
+                                document.getElementById('ramdiskAddDiv').setAttribute('style', 'visibility: collapse');
+                                document.getElementById('hrSpan').innerText = 'Add';
+                            }
+                        }"><span style="color: blue; text-decoration: underline; text-underline-position: auto;" id="hrSpan" >Add</span></th>
                         <th>Device Name</th>
-                        <th>Attached Ramdisk</th>
-                        <th>Source Device</th>
-                        <th>Cache Mode</th>
+                        <th>Device Size (Bytes)</th>
+                        <th>Device Size (MB)</th>
                     </tr>
-                    </thead>
-                    <tbody id="table_mappings">
-                    </tbody>
-                </table>
-            </div>
-            <div role="tabpanel" class="tab-pane fade" id="graph">
-                <div class="row" style="padding-top: 5px;">
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="devicesList">Choose a device:</label>
-                            <select class="form-control" id="devicesList" onchange="get_graph_data()"></select>
-                        </div>
-                        <div class="form-group">
-                            <button class="btn btn-primary" id="UpdateBtn" name="Update" onclick="get_graph_data();" type="button"
-                                    value="Update">Update
-                            </button>
-                        </div>
+                </thead>
+                <tbody id="table_ramdisks">
+                </tbody>
+            </table>
+            <form class="form-inline" id="ramdiskAddDiv" style="visibility: collapse;">
+                <div class="form-group">
+                    <label style="color: #505050;" for="addRamdiskSize">Size of the ramdisk to be added:</label>
+                    <div class="input-group col-xs-4">
+                        <input class="form-control" type="number" min="10" id="addRamdiskSize" placeholder="Size"  />
+                        <div class="input-group-addon">MB</div>
                     </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="updateTime">Update frequency (>= 3):</label>
-                            <input class="form-control" type="number" min="0" max="60" id="updateTime" value="0" step="3" oninput="change_frequency();">
-                        </div>
-                        <div class="form-group">
-                            <button class="btn btn-primary" id="StopBtn" name="Stop"
-                                    onclick="stop();" type="button"
-                                    value="Stop">Stop
-                            </button>
-                        </div>
-                    </div>
+                    <input type="button" class="btn btn-primary" id="addRamdiskButton" value="Add" onclick="add_ramdisk();"/>
                 </div>
-                <div class="row">
-                    <div class="col-md-6 chartDiv" id="chartContainer0"></div>
-                    <div class="col-md-6 chartDiv" id="chartContainer1"></div>
-                </div>
-                <br>
-                <div class="row">
-                    <div class="col-md-6 chartDiv" id="chartContainer2"></div>
-                    <div class="col-md-6 chartDiv" id="chartContainer3"></div>
-                </div>
+            </form>
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="mappings">
+            <h4>Click on a device name to unmap it, click on Add to create a new mapping</h4>
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th onclick="{
+                            if (document.getElementById('hrMapSpan').innerText === 'Add') {
+                                document.getElementById('mappingAddDiv').setAttribute('style', 'visibility: visible');
+                                document.getElementById('hrMapSpan').innerText = 'Close';
+                            } else {
+                                document.getElementById('mappingAddDiv').setAttribute('style', 'visibility: collapse');
+                                document.getElementById('hrMapSpan').innerText = 'Add';
+                            }
+                        }"><span style="color: blue; text-decoration: underline; text-underline-position: auto;" id="hrMapSpan" >Add</span></th>
+                    <th>Device Name</th>
+                    <th>Attached Ramdisk</th>
+                    <th>Source Device</th>
+                    <th>Cache Mode</th>
+                </tr>
+                </thead>
+                <tbody id="table_mappings">
+                </tbody>
+            </table>
+            <form class="form-inline" id="mappingAddDiv" style="visibility: collapse;">
+                <div class="form-group">
+                    <label style="color: #505050;" for="ramdiskName">Ramdisk name</label>
+<!--                    <div class="input-group col-xs-4">-->
+                        <input class="form-control" type="text" id="ramdiskName" placeholder="Ramdisk"  />
+<!--                        <div class="input-group-addon">MB</div>-->
+<!--                    </div>-->
+                    <label style="color: #505050;" for="deviceName">Device name</label>
+                    <input class="form-control" type="text" id="deviceName" placeholder="Device"  />
+                    <label style="color: #505050;" for="cacheMode">Cache mode</label>
+                    <select class="form-control" id="cacheMode">
+                        <option value="write-through" selected="selected">Write Through</option>
+                        <option value="write-around">Write Around</option>
+                        <option value="write-back">Write Back</option>
+                    </select>
 
+                    <input type="button" class="btn btn-primary" id="addMappingButton" value="Add" onclick="add_mapping();"/>
+                </div>
+            </form>
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="graph">
+            <div class="row" style="padding-top: 5px;">
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label for="devicesList">Choose a device:</label>
+                        <select class="form-control" id="devicesList" onchange="get_graph_data()"></select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="UpdateBtn" name="Update" onclick="get_graph_data();" type="button"
+                                value="Update">Update
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label for="updateTime">Update frequency (>= 3):</label>
+                        <input class="form-control" type="number" min="0" max="60" id="updateTime" value="0" step="3" oninput="change_frequency();">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="StopBtn" name="Stop"
+                                onclick="stop();" type="button"
+                                value="Stop">Stop
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 chartDiv" id="chartContainer0"></div>
+                <div class="col-md-6 chartDiv" id="chartContainer1"></div>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-md-6 chartDiv" id="chartContainer2"></div>
+                <div class="col-md-6 chartDiv" id="chartContainer3"></div>
             </div>
 
         </div>
+        <div id="snackbar" class="">Some text some message..</div>
+    </div>
 </div>
 <script crossorigin="anonymous"
         integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"

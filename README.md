@@ -11,3 +11,5 @@
 * If you are on a remote machine, use ssh to map local port to remote port such this:
 
   `ssh -L 9229:127.0.0.1:9229 <username>@<remotehost>`
+
+* Be sure the `rapiddiskd` daemon is up and running.

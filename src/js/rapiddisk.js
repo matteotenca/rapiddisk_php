@@ -4,16 +4,19 @@
 let frequencyId = null;
 let host = "http://127.0.0.1:9229";
 let getinfoId;
-const VERSION = "v0.0.1";
+const VERSION = "v0.0.2";
 
 window.onload = function() {
     'use strict';
     getinfo();
-    getinfoId = setInterval(getinfo, 3000);
+    getinfoId = setInterval(getinfo, 2000);
 };
 
 function update_tabs(data) {
     'use strict';
+    if (data.length === 0) {
+        return;
+    }
     let ramdisks = data["volumes"][0]["rapiddisk"];
     let mappings = data["volumes"][1]["rapiddisk_cache"];
     update_devices(mappings);
@@ -26,6 +29,7 @@ function update_tabs(data) {
     let td3;
     let td4;
     let mb;
+    let span;
     for (let i = 0; i < ramdisks.length; i++) {
         tr = document.createElement("tr");
         th0 = document.createElement("th");
@@ -34,7 +38,11 @@ function update_tabs(data) {
         td3 = document.createElement("td");
         th0.innerText = String(i);
         th0.scope = "row";
-        td1.innerText = ramdisks[i]["device"];
+        span = document.createElement("span");
+        span.setAttribute("style", "color: blue; text-decoration: underline; text-underline-position: auto;");
+        span.innerText = ramdisks[i]["device"];
+        span.addEventListener('mouseup', remove_ramdisk);
+        td1.appendChild(span);
         td2.innerText = ramdisks[i]["size"].toLocaleString();
         mb = parseFloat(ramdisks[i]["size"]) / 1024 / 1024;
         td3.innerText = mb.toLocaleString();
@@ -55,7 +63,13 @@ function update_tabs(data) {
         td4 = document.createElement("td");
         th0.innerText = String(i);
         th0.scope = "row";
-        td1.innerText = mappings[i]["device"];
+        span = document.createElement("span");
+        span.setAttribute("style", "color: blue; text-decoration: underline; text-underline-position: auto;");
+        span.innerText = mappings[i]["device"];
+        if (mappings[i]["device"].startsWith("rc-w")) {
+            span.addEventListener('mouseup', remove_mapping);
+        }
+        td1.appendChild(span);
         td2.innerText = mappings[i]["cache"];
         td3.innerText = mappings[i]["source"];
         td4.innerText = mappings[i]["mode"];
@@ -95,7 +109,11 @@ function change_frequency() {
 function update_graph(data) {
     'use strict';
     let dev = document.getElementById("devicesList").value;
-    for (let i = 2; i < 4; i++) {
+    let firstDiv = 2;
+    if (dev.length === 0) {
+        firstDiv = 0;
+    }
+    for (let i = firstDiv; i < 4; i++) {
         let divId = "chartContainer" + i;
         document.getElementById(divId).innerHTML = "";
     }
@@ -193,6 +211,85 @@ function getinfo() {
     xmlhttp.send("devices=all");
 }
 
+function remove_mapping() {
+    'use strict';
+    let xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            if (this.responseText.length > 0) {
+                let json = JSON.parse(this.responseText);
+                document.getElementById("snackbar").innerHTML = json["message"];
+                showSnackbar();
+                getinfo();
+            }
+        }
+    };
+    let txt = this.innerText;
+    xmlhttp.open("POST", host + "/update_stats.php", true);
+    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xmlhttp.send(`unmap=${txt}`);
+}
+
+function add_mapping() {
+    'use strict';
+    let xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            if (this.responseText.length > 0) {
+                let json = JSON.parse(this.responseText);
+                document.getElementById("snackbar").innerHTML = json["message"];
+                showSnackbar();
+                getinfo();
+            }
+        }
+    };
+    let ramdisk = document.getElementById("ramdiskName").value;
+    let device = document.getElementById("deviceName").value;
+    let mode = encodeURIComponent(document.getElementById("cacheMode").value);
+    xmlhttp.open("POST", host + "/update_stats.php", true);
+    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xmlhttp.send(`map=${device}&ramdisk=${ramdisk}&cachemode=${mode}`);
+}
+
+function remove_ramdisk() {
+    'use strict';
+    let xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            if (this.responseText.length > 0) {
+                let json = JSON.parse(this.responseText);
+                document.getElementById("snackbar").innerHTML = json["message"];
+                showSnackbar();
+                getinfo();
+            }
+        }
+    };
+    let txt = this.innerText;
+    xmlhttp.open("POST", host + "/update_stats.php", true);
+    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xmlhttp.send(`removeramdisk=${txt}`);
+}
+
+function add_ramdisk() {
+    'use strict';
+    let size = document.getElementById("addRamdiskSize").value.toString();
+    if (size.length === 0) { return; }
+    let xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            if (this.responseText.length > 0) {
+                let json = JSON.parse(this.responseText);
+                document.getElementById("snackbar").innerHTML = json["message"];
+                showSnackbar();
+                getinfo();
+            }
+        }
+    };
+    xmlhttp.open("POST", host + "/update_stats.php", true);
+    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xmlhttp.send(`addramdisk=${size}`);
+}
+
 function get_graph_data() {
     'use strict';
     let xmlhttp = new XMLHttpRequest();
@@ -201,11 +298,25 @@ function get_graph_data() {
         if (this.readyState === 4 && this.status === 200) {
             if (this.responseText.length > 0) {
                 let json = JSON.parse(this.responseText);
-                update_graph(json);
+                if (json["message"]) {
+                    document.getElementById("snackbar").innerHTML = json["message"];
+                    showSnackbar();
+                } else {
+                    update_graph(json);
+                }
             }
         }
     };
     xmlhttp.open("POST", host + "/update_stats.php", true);
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xmlhttp.send(`stats=${dev}`);
+}
+
+function showSnackbar() {
+    'use strict';
+    let x = document.getElementById("snackbar");
+    let cls = x.className;
+    cls = cls + " show";
+    x.className = cls;
+    setTimeout(function(){ x.className = x.className.replace(" show", ""); }, 8000);
 }
